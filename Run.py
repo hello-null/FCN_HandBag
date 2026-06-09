@@ -11,7 +11,8 @@ from torchvision import transforms
 
 
 # 导入之前实现的网络和数据加载类（假设它们在当前目录下）
-from Model import FCN                          # FCN 模型（8s/16s/32s）
+from FCN_ResNet18 import FCN_ResNet18
+from FCN_Vgg16 import FCN_Vgg16
 from DataLoader import HandbagSegDataset, LetterboxResize, ColorToBinaryMask, batch_tensor_to_pil, batch_gray_tensor_to_pil     # 数据集类
 
 
@@ -127,7 +128,7 @@ def run_train(epochs, lr, train_root, test_root, num_classes, loss_txt_path,
     test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=1, pin_memory=False)
 
     # ---------- 2. 模型、损失、优化器 ----------
-    model = FCN(num_classes=num_classes, version=version).to(device)
+    model = FCN_ResNet18(num_classes=num_classes, version=version).to(device)
     criterion = nn.CrossEntropyLoss()  # 自动对预测做 softmax
     optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.9, weight_decay=1e-4)
     # 也可使用 Adam：optimizer = optim.Adam(model.parameters(), lr=lr)
@@ -231,7 +232,7 @@ def run_inference(pth_path, test_root, num_classes, version='8s', device='cuda')
     test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
     
     # 加载模型
-    model = FCN(num_classes=num_classes, version=version).to(device)
+    model = FCN_ResNet18(num_classes=num_classes, version=version).to(device)
     checkpoint = torch.load(pth_path, map_location=device)
     model.load_state_dict(checkpoint['model_state_dict'])
     model.eval()
@@ -250,7 +251,7 @@ def run_inference(pth_path, test_root, num_classes, version='8s', device='cuda')
             gt_np = (mask.squeeze(1).cpu().squeeze(0) * 255).numpy()
             
             # 显示原图、ground truth、预测
-            fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15, 5))
+            fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(9, 3))
             ax1.imshow(img_pil); ax1.set_title('Original'); ax1.axis('off')
             ax2.imshow(gt_np, cmap='gray'); ax2.set_title('Ground Truth'); ax2.axis('off')
             ax3.imshow(pred, cmap='gray'); ax3.set_title('Prediction'); ax3.axis('off')
@@ -263,26 +264,28 @@ if __name__ == "__main__":
     # 训练示例
     # run_train(
     #     epochs=100,
-    #     lr=0.01,
+    #     lr=0.001,
     #     train_root=r'F:\datasets\HandBag\train',          # 修改为你的数据集根目录
     #     test_root=r'F:\datasets\HandBag\test',
-    #     num_classes=2,                             # 背景+手提包
-    #     loss_txt_path='train_log.txt',
-    #     version='8s',                              # FCN-8s
-    #     batch_size=4,
-    #     save_interval=5,                          # 每5个epoch保存一次
-    #     resume='./checkpoints/fcn_8s_60.pth',     # 如需断点续训：resume='fcn_8s_20.pth'
-    #     vis_dir='./vis_output/',                  # 每个epoch保存的预测图路径，方便主观判断效果
+    #     num_classes=2,                                    # 背景+手提包
+    #     loss_txt_path='train_log_fcnresnet18.txt',
+    #     version='8s',                                     # FCN-8s
+    #     batch_size=16,
+    #     save_interval=5,                                  # 每5个epoch保存一次
+    #     resume='./ckpts_fcnresnet18/fcn_8s_60.pth',       # 如需断点续训：resume='fcn_8s_20.pth'
+    #     vis_dir='./vis_output_fcnresnet18/',              # 每个epoch保存的预测图路径，方便主观判断效果
     #     device='cuda',
-    #     save_dir='./checkpoints/'                  # 模型权重保存目录
+    #     save_dir='./ckpts_fcnresnet18/'                   # 模型权重保存目录
     # )
 
 
     # 推理示例
     run_inference(
-        pth_path='./checkpoints/fcn_8s_final.pth',  # 预训练模型路径
+        pth_path='ckpts_fcnresnet18/fcn_8s_final.pth',  # 预训练模型路径
         test_root=r'F:\datasets\HandBag\test',      # 测试数据集根目录
         num_classes=2,                              # 背景+手提包
         version='8s',                               # FCN-8s
         device='cuda'                               # 设备
     )
+
+    pass

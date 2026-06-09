@@ -43,4 +43,5 @@ def plot_log(filepath='./train_log.txt'):
     plt.show()
 
 if __name__ == '__main__':
-    plot_log()
+    # plot_log('./train_log_fcnvgg16.txt')
+    plot_log('./train_log_fcnresnet18.txt')
