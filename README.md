@@ -57,6 +57,8 @@ FCN_handbag/
 
 ### 预测结果示例
 
+每张图像的第一列是原图，第二列是真实分割掩码，第三列是模型预测的分割掩码。
+
 **ResNet18主干**
 
 | Epoch 1 | Epoch 20 | Epoch 40 | Epoch 60 | Epoch 80 | Epoch 100 |
